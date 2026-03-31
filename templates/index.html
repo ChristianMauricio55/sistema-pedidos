@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Pedidos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 24px;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #38a169;
+        }
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6b7d;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-pendiente { background: #fed7d7; color: #c53030; }
+        .status-proceso { background: #feebc8; color: #c05621; }
+        .status-completado { background: #c6f6d5; color: #276749; }
+        .status-cancelado { background: #e2e8f0; color: #4a5568; }
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 {
+            font-size: 22px;
+            color: #333;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+        .close-btn:hover {
+            color: #333;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .image-upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .image-upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .image-preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+        }
+        .image-preview-item .delete-img {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f56565;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .image-modal.active {
+            display: flex;
+        }
+        .image-modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+        .image-modal .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 3000;
+            animation: slideIn 0.3s;
+        }
+        .toast-success { background: #48bb78; }
+        .toast-error { background: #f56565; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .view-images-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            padding: 15px;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .pagination-info {
+            margin: 0 15px;
+            color: #666;
+            font-size: 14px;
+        }
+        .items-per-page {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 15px;
+        }
+        .items-per-page select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Sistema de Ticket</h1>
+    </div>
+
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Buscar por pedido, teléfono, folio, prepó, empacó, situación, solución o status...">
+            <button class="btn btn-success" onclick="exportExcel()">Exportar Excel</button>
+            <button class="btn btn-primary" onclick="openModal()">+ Nuevo</button>
+        </div>
+
+        <div class="table-container">
+            <div id="tableContent">
+                <div class="loading"></div>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="pedidoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Nuevo</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="pedidoForm">
+                <input type="hidden" id="pedidoId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="pedido">Pedido *</label>
+                        <input type="text" id="pedido" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="text" id="telefono">
+                    </div>
+                    <div class="form-group">
+                        <label for="folio">Folio</label>
+                        <input type="text" id="folio">
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Completado">Completado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="preparo">Prepró</label>
+                        <input type="text" id="preparo">
+                    </div>
+                    <div class="form-group">
+                        <label for="empaco">Empacó</label>
+                        <input type="text" id="empaco">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="situacion">Situación</label>
+                        <textarea id="situacion"></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="solucion">Solución</label>
+                        <textarea id="solucion"></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Imágenes</label>
+                        <div class="image-upload-area" onclick="document.getElementById('fileInput').click()">
+                            <p>Click para seleccionar imágenes</p>
+                            <p style="font-size: 12px; color: #999;">PNG, JPG, GIF, WEBP</p>
+                        </div>
+                        <input type="file" id="fileInput" multiple accept="image/*" style="display: none" onchange="handleFileSelect(event)">
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="imagesModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>Imágenes del Pedido</h2>
+                <button class="close-btn" onclick="closeImagesModal()">&times;</button>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <input type="file" id="uploadImagesInput" multiple accept="image/*" style="display: none" onchange="handleUploadImages(event)">
+                <button class="btn btn-primary" onclick="document.getElementById('uploadImagesInput').click()">+ Agregar Imágenes</button>
+            </div>
+            <div class="image-preview" id="modalImagePreview"></div>
+        </div>
+    </div>
+
+    <div class="image-modal" id="imageViewer">
+        <button class="close-btn" onclick="closeImageViewer()">&times;</button>
+        <img id="viewerImage" src="" alt="Imagen">
+    </div>
+
+    <div class="toast" id="toast" style="display: none;"></div>
+
+    <script>
+        let currentEditingId = null;
+        let currentImages = [];
+        let newImages = [];
+        let imagesModalPedidoId = null;
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let totalPages = 1;
+        let totalItems = 0;
+
+        async function loadPedidos() {
+            const busqueda = document.getElementById('searchInput').value;
+            try {
+                const response = await fetch(`/api/pedidos?busqueda=${encodeURIComponent(busqueda)}&pagina=${currentPage}&por_pagina=${itemsPerPage}`);
+                const data = await response.json();
+                totalItems = data.total;
+                totalPages = data.total_paginas;
+                renderTable(data.pedidos);
+                renderPagination();
+            } catch (error) {
+                showToast('Error al cargar pedidos', 'error');
+            }
+        }
+
+        function renderTable(pedidos) {
+            const tableContent = document.getElementById('tableContent');
+            
+            if (pedidos.length === 0) {
+                tableContent.innerHTML = '<div style="padding: 40px; text-align: center; color: #999;">No hay pedidos registrados</div>';
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Pedido</th>
+                            <th>Teléfono</th>
+                            <th>Folio</th>
+                            <th>Prepró</th>
+                            <th>Empacó</th>
+                            <th>Status</th>
+                            <th>Fecha</th>
+                            <th>Imágenes</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            pedidos.forEach(p => {
+                const statusClass = {
+                    'Pendiente': 'status-pendiente',
+                    'En Proceso': 'status-proceso',
+                    'Completado': 'status-completado',
+                    'Cancelado': 'status-cancelado'
+                }[p.status] || 'status-pendiente';
+
+                const fecha = p.fecha_creacion ? new Date(p.fecha_creacion).toLocaleDateString('es-MX') : '-';
+
+                html += `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td>${p.pedido}</td>
+                        <td>${p.telefono || '-'}</td>
+                        <td>${p.folio || '-'}</td>
+                        <td>${p.preparo || '-'}</td>
+                        <td>${p.empaco || '-'}</td>
+                        <td><span class="status-badge ${statusClass}">${p.status}</span></td>
+                        <td>${fecha}</td>
+                        <td>
+                            <button class="view-images-btn" onclick="openImagesModal(${p.id}, ${JSON.stringify(p.imagenes).replace(/"/g, '&quot;')})">
+                                Ver (${p.imagenes ? p.imagenes.length : 0})
+                            </button>
+                        </td>
+                        <td class="actions">
+                            <button class="btn btn-sm btn-primary" onclick="editPedido(${p.id})">Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick="deletePedido(${p.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            tableContent.innerHTML = html;
+        }
+
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            let html = '';
+
+            const start = (currentPage - 1) * itemsPerPage + 1;
+            const end = Math.min(currentPage * itemsPerPage, totalItems);
+
+            html += `<button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>«</button>`;
+            html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹</button>`;
+
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
+            }
+
+            html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>›</button>`;
+            html += `<button onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>»</button>`;
+
+            html += `<span class="pagination-info">Mostrando ${start}-${end} de ${totalItems} pedidos</span>`;
+
+            html += `<div class="items-per-page">
+                <label>Por página:</label>
+                <select onchange="changeItemsPerPage(this.value)">
+                    <option value="5" ${itemsPerPage === 5 ? 'selected' : ''}>5</option>
+                    <option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10</option>
+                    <option value="20" ${itemsPerPage === 20 ? 'selected' : ''}>20</option>
+                    <option value="50" ${itemsPerPage === 50 ? 'selected' : ''}>50</option>
+                </select>
+            </div>`;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            loadPedidos();
+        }
+
+        function changeItemsPerPage(value) {
+            itemsPerPage = parseInt(value);
+            currentPage = 1;
+            loadPedidos();
+        }
+
+        function openModal(id = null) {
+            currentEditingId = id;
+            newImages = [];
+            document.getElementById('pedidoId').value = '';
+            document.getElementById('pedido').value = '';
+            document.getElementById('telefono').value = '';
+            document.getElementById('folio').value = '';
+            document.getElementById('preparo').value = '';
+            document.getElementById('empaco').value = '';
+            document.getElementById('situacion').value = '';
+            document.getElementById('solucion').value = '';
+            document.getElementById('status').value = 'Pendiente';
+            document.getElementById('imagePreview').innerHTML = '';
+            
+            document.getElementById('modalTitle').textContent = id ? 'Editar Pedido' : 'Nuevo Pedido';
+            document.getElementById('pedidoModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('pedidoModal').classList.remove('active');
+            currentEditingId = null;
+            newImages = [];
+        }
+
+        async function editPedido(id) {
+            try {
+                const response = await fetch(`/api/pedidos/${id}`);
+                const pedido = await response.json();
+                
+                currentEditingId = id;
+                document.getElementById('pedidoId').value = pedido.id;
+                document.getElementById('pedido').value = pedido.pedido;
+                document.getElementById('telefono').value = pedido.telefono || '';
+                document.getElementById('folio').value = pedido.folio || '';
+                document.getElementById('preparo').value = pedido.preparo || '';
+                document.getElementById('empaco').value = pedido.empaco || '';
+                document.getElementById('situacion').value = pedido.situacion || '';
+                document.getElementById('solucion').value = pedido.solucion || '';
+                document.getElementById('status').value = pedido.status;
+                
+                currentImages = pedido.imagenes || [];
+                renderImagePreview();
+                
+                document.getElementById('modalTitle').textContent = 'Editar Pedido';
+                document.getElementById('pedidoModal').classList.add('active');
+            } catch (error) {
+                showToast('Error al cargar pedido', 'error');
+            }
+        }
+
+        function renderImagePreview() {
+            const preview = document.getElementById('imagePreview');
+            let html = '';
+            
+            currentImages.forEach(img => {
+                html += `
+                    <div class="image-preview-item">
+                        <img src="/uploads/${img.nombre_archivo}" alt="Imagen" onclick="viewImage('/uploads/${img.nombre_archivo}')">
+                        <button class="delete-img" onclick="removeExistingImage(${img.id})">&times;</button>
+                    </div>
+                `;
+            });
+            
+            newImages.forEach((img, index) => {
+                html += `
+                    <div class="image-preview-item">
+                        <img src="${img.preview}" alt="Nueva imagen" onclick="viewImage('${img.preview}')">
+                        <button class="delete-img" onclick="removeNewImage(${index})">&times;</button>
+                    </div>
+                `;
+            });
+            
+            preview.innerHTML = html;
+        }
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        newImages.push({
+                            file: file,
+                            preview: e.target.result
+                        });
+                        renderImagePreview();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            event.target.value = '';
+        }
+
+        function removeNewImage(index) {
+            newImages.splice(index, 1);
+            renderImagePreview();
+        }
+
+        async function removeExistingImage(id) {
+            if (confirm('¿Eliminar esta imagen?')) {
+                try {
+                    await fetch(`/api/imagenes/${id}`, { method: 'DELETE' });
+                    currentImages = currentImages.filter(img => img.id !== id);
+                    renderImagePreview();
+                    showToast('Imagen eliminada', 'success');
+                } catch (error) {
+                    showToast('Error al eliminar imagen', 'error');
+                }
+            }
+        }
+
+        document.getElementById('pedidoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                pedido: document.getElementById('pedido').value,
+                telefono: document.getElementById('telefono').value,
+                folio: document.getElementById('folio').value,
+                preparo: document.getElementById('preparo').value,
+                empaco: document.getElementById('empaco').value,
+                situacion: document.getElementById('situacion').value,
+                solucion: document.getElementById('solucion').value,
+                status: document.getElementById('status').value
+            };
+
+            try {
+                let response;
+                if (currentEditingId) {
+                    response = await fetch(`/api/pedidos/${currentEditingId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const pedido = await response.json();
+                    
+                    if (newImages.length > 0) {
+                        const formData = new FormData();
+                        newImages.forEach(img => {
+                            formData.append('files', img.file);
+                        });
+                        await fetch(`/api/pedidos/${currentEditingId}/imagenes`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                    }
+                    
+                    showToast('Pedido actualizado', 'success');
+                } else {
+                    response = await fetch('/api/pedidos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const pedido = await response.json();
+                    
+                    if (newImages.length > 0) {
+                        const formData = new FormData();
+                        newImages.forEach(img => {
+                            formData.append('files', img.file);
+                        });
+                        await fetch(`/api/pedidos/${pedido.id}/imagenes`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                    }
+                    
+                    showToast('Pedido creado', 'success');
+                }
+                
+                closeModal();
+                currentPage = 1;
+                loadPedidos();
+            } catch (error) {
+                showToast('Error al guardar pedido', 'error');
+            }
+        });
+
+        async function deletePedido(id) {
+            if (!confirm('¿Eliminar este pedido?')) return;
+            
+            try {
+                await fetch(`/api/pedidos/${id}`, { method: 'DELETE' });
+                showToast('Pedido eliminado', 'success');
+                currentPage = 1;
+                loadPedidos();
+            } catch (error) {
+                showToast('Error al eliminar pedido', 'error');
+            }
+        }
+
+        async function openImagesModal(pedidoId, imagenes) {
+            imagesModalPedidoId = pedidoId;
+            currentImages = imagenes || [];
+            renderModalImages();
+            document.getElementById('imagesModal').classList.add('active');
+        }
+
+        function closeImagesModal() {
+            document.getElementById('imagesModal').classList.remove('active');
+            imagesModalPedidoId = null;
+        }
+
+        function renderModalImages() {
+            const preview = document.getElementById('modalImagePreview');
+            let html = '';
+            
+            currentImages.forEach(img => {
+                html += `
+                    <div class="image-preview-item">
+                        <img src="/uploads/${img.nombre_archivo}" alt="Imagen" onclick="viewImage('/uploads/${img.nombre_archivo}')">
+                        <button class="delete-img" onclick="deleteModalImage(${img.id})">&times;</button>
+                    </div>
+                `;
+            });
+            
+            preview.innerHTML = html || '<p style="color: #999; padding: 20px;">No hay imágenes</p>';
+        }
+
+        async function handleUploadImages(event) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+            
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append('files', file);
+            }
+            
+            try {
+                const response = await fetch(`/api/pedidos/${imagesModalPedidoId}/imagenes`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const newImgs = await response.json();
+                currentImages = [...currentImages, ...newImgs];
+                renderModalImages();
+                showToast('Imágenes agregadas', 'success');
+            } catch (error) {
+                showToast('Error al subir imágenes', 'error');
+            }
+            
+            event.target.value = '';
+        }
+
+        async function deleteModalImage(id) {
+            if (!confirm('¿Eliminar esta imagen?')) return;
+            
+            try {
+                await fetch(`/api/imagenes/${id}`, { method: 'DELETE' });
+                currentImages = currentImages.filter(img => img.id !== id);
+                renderModalImages();
+                showToast('Imagen eliminada', 'success');
+            } catch (error) {
+                showToast('Error al eliminar imagen', 'error');
+            }
+        }
+
+        function viewImage(src) {
+            document.getElementById('viewerImage').src = src;
+            document.getElementById('imageViewer').classList.add('active');
+        }
+
+        function closeImageViewer() {
+            document.getElementById('imageViewer').classList.remove('active');
+        }
+
+        async function exportExcel() {
+            try {
+                const response = await fetch('/api/exportar-excel');
+                const data = await response.json();
+                window.location.href = data.download_url;
+                showToast('Excel exportado', 'success');
+            } catch (error) {
+                showToast('Error al exportar', 'error');
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', debounce(() => {
+            currentPage = 1;
+            loadPedidos();
+        }, 300));
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        document.getElementById('imageViewer').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('imageViewer')) {
+                closeImageViewer();
+            }
+        });
+
+        loadPedidos();
+    </script>
+</body>
+</html>
