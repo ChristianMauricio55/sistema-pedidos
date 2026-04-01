@@ -1,13 +1,19 @@
 import os
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'clave-secreta-sistema-pedidos-2024'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'clave-secreta'
 
-    # 🔥 Base de datos (usa PostgreSQL si existe, si no SQLite)
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///sistema_pedidos.db'
+    database_url = os.environ.get('DATABASE_URL')
+
+    if database_url:
+        database_url = database_url.replace("postgres://", "postgresql://")
+
+        if "sslmode" not in database_url:
+            database_url += "?sslmode=require"
+
+    SQLALCHEMY_DATABASE_URI = database_url or 'sqlite:///sistema_pedidos.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # 🔥 Carpeta de uploads (dinámica)
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
 

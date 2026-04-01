@@ -9,6 +9,8 @@ from database import db, init_db, Pedido, Imagen
 app = Flask(__name__)
 app.config.from_object(Config)
 
+init_db(app)
+
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 def get_fecha_mexico():
@@ -203,5 +205,4 @@ def export_excel():
     return jsonify({'download_url': url_for('uploaded_file', filename=filename)})
 
 if __name__ == '__main__':
-    init_db(app)
     app.run(debug=True, host='192.168.1.95', port=5000)
